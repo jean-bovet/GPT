@@ -8,6 +8,58 @@
     <link rel="stylesheet" href="chessboard-1.0.0.min.css">
 
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            /* Add this line */
+            flex-direction: column;
+            /* Add this line */
+            align-items: center;
+            /* Add this line */
+            justify-content: center;
+            /* Add this line */
+            min-height: 100vh;
+            /* Add this line */
+            margin: 0;
+            /* Add this line */
+            padding: 20px;
+            /* Add this line */
+        }
+
+        #api-key-container {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        #api-key {
+            padding: 5px 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 400px;
+        }
+
+        #submit-api-key {
+            padding: 5px 20px;
+            font-size: 16px;
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #submit-api-key:hover {
+            background-color: #005fa3;
+        }
+
         .hidden {
             display: none;
         }
@@ -30,14 +82,41 @@
             border-radius: 10px;
             text-align: center;
         }
+
+        #reset-board {
+            margin-top: 10px;
+            padding: 5px 20px;
+            font-size: 16px;
+            background-color: #ff4c4c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #reset-board:hover {
+            background-color: #d83a3a;
+        }
     </style>
 </head>
 
 <body>
-    <label for="api-key">API Key:</label>
-    <input type="password" id="api-key" placeholder="Enter your API key" />
-    <div id="board" style="width: 400px"></div>
-    <button id="undo">Undo</button>
+    <div id="api-key-container">
+        <input type="password" id="api-key" placeholder="Enter your OpenAPI key" />
+        <button id="submit-api-key">Submit</button>
+    </div>
+
+    <div id="chessboard-container" class="hidden">
+        <div id="board" style="width: 400px"></div>
+        <button id="undo">Undo</button>
+        <div id="error-overlay" class="hidden">
+            <div class="error-content">
+                <div id="error-message"></div>
+                <button id="reset-board">Reset Board</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
@@ -57,6 +136,36 @@
         });
 
         undoButton.addEventListener('click', undoMove);
+
+        const submitApiKeyButton = document.getElementById('submit-api-key');
+        submitApiKeyButton.addEventListener('click', () => {
+            const apiKey = document.getElementById('api-key').value;
+            if (apiKey) {
+                // Display the chessboard container
+                const chessboardContainer = document.getElementById('chessboard-container');
+                chessboardContainer.classList.remove('hidden');
+
+                const apikeyContainer = document.getElementById('api-key-container');
+                apikeyContainer.classList.add('hidden')
+
+                // Use the API key for requests
+                // For example: await updateBoard(apiKey);
+            } else {
+                alert('Please enter a valid API key.');
+            }
+        });
+
+        const resetBoardButton = document.getElementById('reset-board');
+
+        resetBoardButton.addEventListener('click', () => {
+            // Reset the board
+            chess.reset();
+            board.start();
+
+            // Hide the error overlay
+            const errorOverlay = document.getElementById('error-overlay');
+            errorOverlay.style.display = 'none';
+        });
 
         function onDragStart(source, piece, position, orientation) {
             if (chess.in_checkmate() === true || chess.in_draw() === true || piece.search(/^b/) !== -1) {
@@ -136,10 +245,6 @@
             board.position(chess.fen());
         }
     </script>
-
-    <div id="error-overlay" class="hidden">
-        <div id="error-message" class="error-content"></div>
-    </div>
 
 </body>
 
