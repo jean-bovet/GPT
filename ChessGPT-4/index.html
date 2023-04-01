@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess with API</title>
+    <link rel="stylesheet" href="chessboard-1.0.0.min.css">
+
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        #error-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .error-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <label for="api-key">API Key:</label>
+    <input type="password" id="api-key" placeholder="Enter your API key" />
+    <div id="board" style="width: 400px"></div>
+    <button id="undo">Undo</button>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+        const boardElement = document.getElementById('board');
+        const undoButton = document.getElementById('undo');
+
+        const chess = new Chess();
+        const board = ChessBoard('board', {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onMouseoutSquare: onMouseoutSquare,
+            onMouseoverSquare: onMouseoverSquare,
+            onSnapEnd: onSnapEnd,
+        });
+
+        undoButton.addEventListener('click', undoMove);
+
+        function onDragStart(source, piece, position, orientation) {
+            if (chess.in_checkmate() === true || chess.in_draw() === true || piece.search(/^b/) !== -1) {
+                return false;
+            }
+        }
+
+        function onDrop(source, target) {
+            const move = chess.move({
+                from: source,
+                to: target,
+                promotion: 'q',
+            });
+
+            if (move === null) {
+                return 'snapback';
+            }
+
+            updateBoard();
+        }
+
+        function onMouseoverSquare(square, piece) { }
+
+        function onMouseoutSquare(square, piece) { }
+
+        function onSnapEnd() {
+            board.position(chess.fen());
+        }
+
+        async function updateBoard() {
+            const lastMove = chess.history().pop();
+            const prompt = `Make a chess move in response to the move "${lastMove}".`;
+            const apiKey = document.getElementById('api-key').value;
+
+            const response = await fetch('https://api.openai.com/v1/engines/text-davinci-002/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiKey,
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    max_tokens: 10,
+                    n: 1,
+                    stop: null,
+                    temperature: 0.5,
+                }),
+            });
+
+            const data = await response.json();
+            const chatGPTMove = data.choices[0].text.trim();
+
+            console.log('Moves: ' + chess.history())
+            console.log('ChatGPT responded: ' + data.choices[0].text)
+
+            // Validate and apply the move
+            const move = chess.move(chatGPTMove);
+
+            if (move === null) {
+                showErrorOverlay(`Invalid move by ChatGPT: ${chatGPTMove}`);
+                return;
+            }
+
+            board.position(chess.fen());
+        }
+
+        function showErrorOverlay(message) {
+            const errorOverlay = document.getElementById('error-overlay');
+            const errorMessage = document.getElementById('error-message');
+
+            errorMessage.textContent = message;
+            errorOverlay.style.display = 'flex'; // Change this line
+        }
+
+        function undoMove() {
+            chess.undo();
+            board.position(chess.fen());
+        }
+    </script>
+
+    <div id="error-overlay" class="hidden">
+        <div id="error-message" class="error-content"></div>
+    </div>
+
+</body>
+
+</html>
