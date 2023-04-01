@@ -97,6 +97,20 @@
         #reset-board:hover {
             background-color: #d83a3a;
         }
+
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #0077cc;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -245,6 +259,11 @@
             board.position(chess.fen());
         }
     </script>
+
+    <footer>
+        <p>Chessboard powered by <a href="https://chessboardjs.com" target="_blank"
+                rel="noopener noreferrer">chessboardjs</a></p>
+    </footer>
 
 </body>
 
