@@ -61,7 +61,7 @@
         }
 
         #undo,
-        #take-back {
+        #toggle-history {
             margin-top: 5px;
             padding: 5px 20px;
             font-size: 12px;
@@ -73,12 +73,12 @@
         }
 
         #undo:hover,
-        #take-back:hover {
+        #toggle-history:hover {
             background-color: #005fa3;
         }
 
         .hidden {
-            display: none;
+            visibility: hidden;
         }
 
         #error-overlay {
@@ -88,7 +88,7 @@
             right: 0;
             bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
-            display: none;
+            display: flex;
             justify-content: center;
             align-items: center;
         }
@@ -98,6 +98,16 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+        }
+
+        #chessboard-container {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        #board-and-controls {
+            display: flex;
+            flex-direction: column;
         }
 
         #reset-board {
@@ -113,6 +123,26 @@
 
         #reset-board:hover {
             background-color: #d83a3a;
+        }
+
+        #history-panel {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            /* background-color: #f9f9f9; */
+            max-width: 300px;
+            max-height: 400px;
+            font-size: 12px;
+            background-color: #0077cc;
+            color: white;
+            overflow-y: auto;
+        }
+
+        #move-history {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
         footer {
@@ -138,15 +168,23 @@
     </div>
 
     <div id="chessboard-container" class="hidden">
-        <div id="board" style="width: 400px"></div>
-        <button id="undo">Undo</button>
-        <button id="take-back">Take Back</button>
+        <div id="board-and-controls">
+            <div id="board" style="width: 400px"></div>
+            <div>
+                <button id="undo">Undo</button>
+                <button id="toggle-history">Toggle History</button>
+            </div>
+        </div>
+        <div id="history-panel" class="hidden">
+            <h3>Move History</h3>
+            <ul id="move-history"></ul>
+        </div>
         <div id="error-overlay" class="hidden">
             <div class="error-content">
                 <div id="error-message"></div>
                 <button id="reset-board">Reset Board</button>
             </div>
-        </div>
+        </div>    
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -169,15 +207,12 @@
 
         undoButton.addEventListener('click', undoMove);
 
-        const takeBackButton = document.getElementById('take-back');
+        const toggleHistoryButton = document.getElementById('toggle-history');
+        const historyPanel = document.getElementById('history-panel');
 
-        takeBackButton.addEventListener('click', () => {
-            // Take back the last two moves (one for the player and one for the AI)
-            chess.undo();
-            chess.undo();
-
-            // Update the chessboard
-            board.position(chess.fen());
+        toggleHistoryButton.addEventListener('click', () => {
+            // Toggle the display of the history panel
+            historyPanel.classList.toggle('hidden');
         });
 
         const submitApiKeyButton = document.getElementById('submit-api-key');
@@ -205,9 +240,11 @@
             chess.reset();
             board.start();
 
+            updateHistory();
+
             // Hide the error overlay
             const errorOverlay = document.getElementById('error-overlay');
-            errorOverlay.style.display = 'none';
+            errorOverlay.style.visibility = 'hidden';
         });
 
         function onDragStart(source, piece, position, orientation) {
@@ -236,6 +273,31 @@
 
         function onSnapEnd() {
             board.position(chess.fen());
+        }
+
+        function updateHistory() {
+            const moveHistoryElement = document.getElementById('move-history');
+            const moveHistory = chess.history();
+
+            // Clear the existing move history
+            moveHistoryElement.innerHTML = '';
+
+            // Add the new move history
+            let lineIndex = 1;
+            for (let i = 0; i < moveHistory.length; i += 2) {
+                const listItem = document.createElement('li');
+
+                // Add the user's move
+                listItem.textContent = `${lineIndex}. ${moveHistory[i]}`;
+
+                // Add the AI's move, if available
+                if (i + 1 < moveHistory.length) {
+                    listItem.textContent += ` ${moveHistory[i + 1]}`;
+                }
+
+                moveHistoryElement.appendChild(listItem);
+                lineIndex++;
+            }
         }
 
         async function updateBoard() {
@@ -268,11 +330,15 @@
             const move = chess.move(chatGPTMove);
 
             if (move === null) {
-                showErrorOverlay(`Invalid move by ChatGPT: ${chatGPTMove}`);
+                const message = `Invalid move by ChatGPT: ${chatGPTMove}`;
+                console.log(message);
+                showErrorOverlay(message);
                 return;
             }
 
             board.position(chess.fen());
+
+            updateHistory();
         }
 
         function showErrorOverlay(message) {
@@ -280,12 +346,13 @@
             const errorMessage = document.getElementById('error-message');
 
             errorMessage.textContent = message;
-            errorOverlay.style.display = 'flex'; // Change this line
+            errorOverlay.style.visibility = 'visible';
         }
 
         function undoMove() {
-            chess.undo();
+            chess.undo();            
             board.position(chess.fen());
+            updateHistory();
         }
     </script>
 
