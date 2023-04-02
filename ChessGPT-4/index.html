@@ -60,6 +60,23 @@
             background-color: #005fa3;
         }
 
+        #undo,
+        #take-back {
+            margin-top: 5px;
+            padding: 5px 20px;
+            font-size: 12px;
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #undo:hover,
+        #take-back:hover {
+            background-color: #005fa3;
+        }
+
         .hidden {
             display: none;
         }
@@ -123,6 +140,7 @@
     <div id="chessboard-container" class="hidden">
         <div id="board" style="width: 400px"></div>
         <button id="undo">Undo</button>
+        <button id="take-back">Take Back</button>
         <div id="error-overlay" class="hidden">
             <div class="error-content">
                 <div id="error-message"></div>
@@ -150,6 +168,17 @@
         });
 
         undoButton.addEventListener('click', undoMove);
+
+        const takeBackButton = document.getElementById('take-back');
+
+        takeBackButton.addEventListener('click', () => {
+            // Take back the last two moves (one for the player and one for the AI)
+            chess.undo();
+            chess.undo();
+
+            // Update the chessboard
+            board.position(chess.fen());
+        });
 
         const submitApiKeyButton = document.getElementById('submit-api-key');
         submitApiKeyButton.addEventListener('click', () => {
