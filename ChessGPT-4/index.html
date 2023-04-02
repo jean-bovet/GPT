@@ -26,6 +26,18 @@
             /* Add this line */
         }
 
+        #api-key-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         #api-key-container {
             flex-direction: column;
             align-items: center;
@@ -162,12 +174,7 @@
 </head>
 
 <body>
-    <div id="api-key-container">
-        <input type="password" id="api-key" placeholder="Enter your OpenAPI key" />
-        <button id="submit-api-key">Submit</button>
-    </div>
-
-    <div id="chessboard-container" class="hidden">
+    <div id="chessboard-container">
         <div id="board-and-controls">
             <div id="board" style="width: 400px"></div>
             <div>
@@ -179,12 +186,18 @@
             <h3>Move History</h3>
             <ul id="move-history"></ul>
         </div>
+        <div id="api-key-overlay">
+            <div id="api-key-container">
+                <input type="password" id="api-key" placeholder="Enter your OpenAPI key" />
+                <button id="submit-api-key">Submit</button>
+            </div>
+        </div>
         <div id="error-overlay" class="hidden">
             <div class="error-content">
                 <div id="error-message"></div>
                 <button id="reset-board">Reset Board</button>
             </div>
-        </div>    
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -219,15 +232,8 @@
         submitApiKeyButton.addEventListener('click', () => {
             const apiKey = document.getElementById('api-key').value;
             if (apiKey) {
-                // Display the chessboard container
-                const chessboardContainer = document.getElementById('chessboard-container');
-                chessboardContainer.classList.remove('hidden');
-
-                const apikeyContainer = document.getElementById('api-key-container');
+                const apikeyContainer = document.getElementById('api-key-overlay');
                 apikeyContainer.classList.add('hidden')
-
-                // Use the API key for requests
-                // For example: await updateBoard(apiKey);
             } else {
                 alert('Please enter a valid API key.');
             }
@@ -350,7 +356,7 @@
         }
 
         function undoMove() {
-            chess.undo();            
+            chess.undo();
             board.position(chess.fen());
             updateHistory();
         }
