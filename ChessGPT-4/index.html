@@ -170,11 +170,26 @@
         footer a:hover {
             text-decoration: underline;
         }
+
+        .description {
+            margin-bottom: 20px;
+            text-align: left;
+        }
     </style>
 </head>
 
 <body>
-    <div id="chessboard-container">
+    <div class="description" style="width: 600px">
+        <h2>ChatGPT Chess</h2>
+        <p>
+            This page allows you to play chess against OpenAI's ChatGPT. The chessboard is powered by the Chessboard.js
+            library, and the chess engine is driven by the ChatGPT API. You can make your moves on the board, and
+            ChatGPT will respond with its moves in real-time.
+        </p>
+        <p><i>Written by GPT-4</i></p>
+    </div>
+
+    <div id="chessboard-container">    
         <div id="board-and-controls">
             <div id="board" style="width: 400px"></div>
             <div>
