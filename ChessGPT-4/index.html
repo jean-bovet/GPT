@@ -227,17 +227,6 @@
 
         const historyPanel = document.getElementById('history-panel');
 
-        const submitApiKeyButton = document.getElementById('submit-api-key');
-        submitApiKeyButton.addEventListener('click', () => {
-            const apiKey = document.getElementById('api-key').value;
-            if (apiKey) {
-                const apikeyContainer = document.getElementById('api-key-overlay');
-                apikeyContainer.classList.add('hidden')
-            } else {
-                alert('Please enter a valid API key.');
-            }
-        });
-
         const resetBoardButton = document.getElementById('reset-board');
 
         resetBoardButton.addEventListener('click', () => {
@@ -366,6 +355,8 @@
                 rel="noopener noreferrer">chessboardjs</a> and <a href="https://github.com/jhlywa/chess.js"
                 target="_blank" rel="noopener noreferrer">chess.js</a></p>
     </footer>
+
+    <script src="chess.js"></script>
 
 </body>
 
