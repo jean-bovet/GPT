@@ -1,4 +1,4 @@
-const undoButton = document.getElementById('undo');
+document.getElementById("gpt3").checked = true;
 
 const chess = new Chess();
 const board = ChessBoard('board', {
@@ -9,24 +9,6 @@ const board = ChessBoard('board', {
     onMouseoutSquare: onMouseoutSquare,
     onMouseoverSquare: onMouseoverSquare,
     onSnapEnd: onSnapEnd,
-});
-
-undoButton.addEventListener('click', undoMove);
-
-const historyPanel = document.getElementById('history-panel');
-
-const resetBoardButton = document.getElementById('reset-board');
-
-resetBoardButton.addEventListener('click', () => {
-    // Reset the board
-    chess.reset();
-    board.start();
-
-    updateHistory();
-
-    // Hide the error overlay
-    const errorOverlay = document.getElementById('error-overlay');
-    errorOverlay.style.visibility = 'hidden';
 });
 
 function onDragStart(source, piece, position, orientation) {
@@ -46,7 +28,7 @@ function onDrop(source, target) {
         return 'snapback';
     }
 
-    updateBoard();
+    updateBoardWithMoveByChatGPT();
 }
 
 function onMouseoverSquare(square, piece) { }
@@ -56,6 +38,42 @@ function onMouseoutSquare(square, piece) { }
 function onSnapEnd() {
     board.position(chess.fen());
 }
+
+const undoButton = document.getElementById('undo');
+undoButton.addEventListener('click', undoMove);
+
+const resetBoardButton = document.getElementById('reset-board');
+resetBoardButton.addEventListener('click', () => {
+    // Reset the board
+    chess.reset();
+    board.start();
+
+    updateHistory();
+
+    // Hide the error overlay
+    const errorOverlay = document.getElementById('error-overlay');
+    errorOverlay.style.visibility = 'hidden';
+});
+
+const retryBoardButton = document.getElementById('retry-board');
+retryBoardButton.addEventListener('click', () => {
+    updateBoardWithMoveByChatGPT();
+
+    // Hide the error overlay
+    const errorOverlay = document.getElementById('error-overlay');
+    errorOverlay.style.visibility = 'hidden';
+});
+
+const submitApiKeyButton = document.getElementById('submit-api-key');
+submitApiKeyButton.addEventListener('click', () => {
+    const apiKey = document.getElementById('api-key').value;
+    if (apiKey) {
+        const apikeyContainer = document.getElementById('api-key-overlay');
+        apikeyContainer.classList.add('hidden')
+    } else {
+        alert('Please enter a valid API key.');
+    }
+});
 
 function updateHistory() {
     const moveHistoryElement = document.getElementById('move-history');
@@ -82,7 +100,36 @@ function updateHistory() {
     }
 }
 
-async function updateBoard() {
+async function playAgainstGPT4() {
+    const apiKey = document.getElementById('api-key').value;
+    const moveHistory = chess.history();
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey,
+        },
+        body: JSON.stringify({
+            model: "gpt-4",
+            messages: [
+                { role: "system", content: "You are a chess player." },
+                { role: "user", content: "Make a chess move in response to the move history "+moveHistory+". Just return the move." },
+            ],
+            max_tokens: 10,
+            n: 1,
+            stop: null,
+            temperature: 0.5,
+        }),
+    });
+
+    const data = await response.json();
+    const chatGPTMove = data.choices[0].message.content.trim();
+
+    return chatGPTMove
+}
+
+async function playAgainstGPT3() {
     const lastMove = chess.history().pop();
     const prompt = `Make a chess move in response to the move "${lastMove}".`;
     const apiKey = document.getElementById('api-key').value;
@@ -105,8 +152,14 @@ async function updateBoard() {
     const data = await response.json();
     const chatGPTMove = data.choices[0].text.trim();
 
+    return chatGPTMove
+}
+
+async function updateBoardWithMoveByChatGPT() {
+    const chatGPTMove = document.getElementById("gpt3").checked ? await playAgainstGPT3() : await playAgainstGPT4();
+
     console.log('Moves: ' + chess.history())
-    console.log('ChatGPT responded: ' + data.choices[0].text)
+    console.log('ChatGPT responded: ' + chatGPTMove)
 
     // Validate and apply the move
     const move = chess.move(chatGPTMove);
@@ -136,13 +189,3 @@ function undoMove() {
     board.position(chess.fen());
     updateHistory();
 }
-const submitApiKeyButton = document.getElementById('submit-api-key');
-submitApiKeyButton.addEventListener('click', () => {
-    const apiKey = document.getElementById('api-key').value;
-    if (apiKey) {
-        const apikeyContainer = document.getElementById('api-key-overlay');
-        apikeyContainer.classList.add('hidden')
-    } else {
-        alert('Please enter a valid API key.');
-    }
-});

@@ -135,6 +135,21 @@
             background-color: #d83a3a;
         }
 
+        #retry-board {
+            margin-top: 10px;
+            padding: 5px 20px;
+            font-size: 16px;
+            background-color: #55ff00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #retry-board:hover {
+            background-color: #2efc00;
+        }
+
         #history-panel {
             margin-left: 10px;
             width: 100px;
@@ -167,6 +182,13 @@
             margin-bottom: 20px;
             text-align: left;
         }
+
+        .radio-container {
+			display: flex;
+			flex-direction: row;
+			align-items: baseline;
+            justify-content: flex-start;
+		}
     </style>
 </head>
 
@@ -183,6 +205,16 @@
 
     <div id="chessboard-container">
         <div id="board-and-controls">
+            <div class="radio-container">
+                <p>Play against:</p>
+
+                <input type="radio" name="model" id="gpt3">
+                <label for="gpt3">GPT-3</label>
+            
+                <input type="radio" name="model" id="gpt4">
+                <label for="gpt4">GPT-4</label>
+            </div>
+            
             <div id="board" style="width: 400px"></div>
             <div>
                 <button id="undo">Undo</button>
@@ -201,6 +233,7 @@
             <div class="error-content">
                 <div id="error-message"></div>
                 <button id="reset-board">Reset Board</button>
+                <button id="retry-board">Retry</button>
             </div>
         </div>
     </div>
